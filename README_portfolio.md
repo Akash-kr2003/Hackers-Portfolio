@@ -1,5 +1,5 @@
 
-# 💻 Akash Kumar's Terminal-style Portfolio
+# 💻 Akash Kumar's Hacker's-style Portfolio
 
 This project is an **interactive, hacker-themed portfolio website** built with HTML, CSS (Tailwind), and JavaScript. It simulates a terminal interface and incorporates sound effects, animations, and command-line interactions to showcase skills, projects, achievements, and contact info.
 
