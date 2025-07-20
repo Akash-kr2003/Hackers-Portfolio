@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/// SYSTEM KERNEL CORRUPTED ///</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fira Code', monospace;
+            background-color: #010409;
+            color: #00ff41;
+            overflow: hidden;
+        }
+
+        .glitch-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: #010409;
+            z-index: -1;
+        }
+
+        .glitch-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(18, 18, 18, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            background-size: 100% 4px;
+            animation: scan 7s linear infinite;
+        }
+
+        .glitch-overlay::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(0deg, transparent 0%, rgba(255, 0, 58, 0.2) 50%, transparent 100%);
+            opacity: 0.1;
+            animation: glitch-flicker 0.15s infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 0 -200px;
+            }
+        }
+
+        @keyframes glitch-flicker {
+            0% {
+                opacity: 0.1;
+            }
+
+            50% {
+                opacity: 0.2;
+            }
+
+            100% {
+                opacity: 0.1;
+            }
+        }
+
+        .text-glow {
+            text-shadow: 0 0 5px #00ff41, 0 0 8px #00ff41;
+        }
+
+        .text-red-glow {
+            color: #ff073a;
+            text-shadow: 0 0 5px #ff073a, 0 0 8px #ff073a;
+        }
+
+        #hack-sequence {
+            z-index: 100;
+        }
+
+        #hack-sequence .line {
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        #matrix-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .progress-bar-container {
+            background-color: #00ff411a;
+            border: 1px solid #00ff4180;
+            padding: 2px;
+        }
+
+        .progress-bar {
+            background-color: #ff073a;
+            width: 0%;
+            height: 10px;
+            transition: width 1s ease-out;
+        }
+
+        .terminal-window {
+            background: rgba(1, 4, 9, 0.8);
+            backdrop-filter: blur(5px);
+            border: 1px solid #00ff4180;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            height: calc(100vh - 2rem);
+            /* Adjusted for smaller padding on mobile */
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 640px) {
+            .terminal-window {
+                height: calc(100vh - 4rem);
+                /* Reverts to larger padding on sm+ screens */
+            }
+        }
+
+        .terminal-header {
+            background: #00ff4133;
+            padding: 0.5rem;
+            /* Increased padding for better spacing */
+            border-bottom: 1px solid #00ff4180;
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            /* Stacks header items on mobile */
+            align-items: center;
+            text-align: center;
+            gap: 0.25rem;
+        }
+
+        @media (min-width: 640px) {
+            .terminal-header {
+                flex-direction: row;
+                /* Side-by-side on sm+ screens */
+                justify-content: space-between;
+                text-align: left;
+            }
+        }
+
+        .terminal-output {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .terminal-input-line {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-top: 1px solid #00ff4180;
+        }
+
+        .terminal-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #00ff41;
+            flex-grow: 1;
+        }
+
+        .command-link:hover {
+            background-color: #00ff41;
+            color: #010409;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="p-2 sm:p-4">
+    <div class="glitch-overlay"></div>
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- HACKING SEQUENCE -->
+    <div id="hack-sequence"
+        class="fixed inset-0 bg-[#010409] z-50 flex flex-col items-center justify-center text-center p-4">
+        <div id="hack-text-container"></div>
+        <div id="progress-container" class="w-full max-w-md mt-4 hidden">
+            <p id="progress-label" class="text-glow mb-2"></p>
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN PORTFOLIO INTERFACE -->
+    <div id="main-content" class="hidden">
+        <div class="terminal-window">
+            <header class="terminal-header">
+                <div>[akash-kumar@portfolio] - [/root]</div>
+                <div>
+                    <span>CPU: <span id="cpu-stat"></span>%</span> |
+                    <span>MEM: <span id="mem-stat"></span>%</span> |
+                    <span>NET: <span id="net-stat"></span>KB/s</span>
+                </div>
+            </header>
+            <main id="terminal-output" class="terminal-output"></main>
+            <div class="terminal-input-line">
+                <label for="command-input" class="text-red-500 mr-2">&gt;</label>
+                <input type="text" id="command-input" class="terminal-input" autocomplete="off" autofocus>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hackSequenceContainer = document.getElementById('hack-sequence');
+            const hackTextContainer = document.getElementById('hack-text-container');
+            const progressContainer = document.getElementById('progress-container');
+            const progressLabel = document.getElementById('progress-label');
+            const progressBar = document.getElementById('progress-bar');
+            const mainContent = document.getElementById('main-content');
+            const terminalOutput = document.getElementById('terminal-output');
+            const commandInput = document.getElementById('command-input');
+            const matrixCanvas = document.getElementById('matrix-canvas');
+
+            let synth, keySound;
+            const isAudioReady = typeof Tone !== 'undefined';
+
+            if (isAudioReady) {
+                synth = new Tone.Synth().toDestination();
+                keySound = new Tone.MembraneSynth({
+                    pitchDecay: 0.01,
+                    octaves: 2,
+                    envelope: { attack: 0.001, decay: 0.2, sustain: 0 },
+                }).toDestination();
+            }
+
+            const playKeySound = () => isAudioReady && keySound.triggerAttackRelease("C1", "8n");
+            const playConfirmSound = () => isAudioReady && synth.triggerAttackRelease("C4", "8n");
+            const playErrorSound = () => isAudioReady && synth.triggerAttackRelease("C3", "8n");
+
+            let isTyping = false;
+            const typeSpeed = 10;
+
+            const commands = {
+                'help': 'Displays this list of available commands.',
+                'whois': 'Reveals the identity of the system intruder.',
+                'scan --skills': 'Analyzes the intruder\'s skillset.',
+                'review --logs': 'Shows a log of the intruder\'s past operations and projects.',
+                'achievements': 'Displays certifications and competitive achievements.',
+                'extract --intel': 'Downloads the intruder\'s dossier (resume).',
+                'contact': 'Opens secure communication channels.',
+                'clear': 'Clears the terminal screen.',
+                'exit': 'Closes the terminal session (reloads page).'
+            };
+
+            async function runHackSequence() {
+                const lines = [
+                    { text: 'INITIALIZING KERNEL PANIC...', delay: 1000 },
+                    { text: 'MEMORY DUMP INITIATED...', delay: 1500 },
+                    { text: '!!! SYSTEM INTEGRITY COMPROMISED !!!', class: 'text-red-glow text-xl sm:text-2xl', delay: 1000 }
+                ];
+
+                for (const line of lines) {
+                    await new Promise(r => setTimeout(r, line.delay));
+                    const p = document.createElement('p');
+                    p.textContent = line.text;
+                    p.className = `line ${line.class || 'text-glow'}`;
+                    hackTextContainer.appendChild(p);
+                }
+
+                await new Promise(r => setTimeout(r, 1000));
+                hackTextContainer.classList.add('hidden');
+                progressContainer.classList.remove('hidden');
+                matrixCanvas.style.opacity = '0.3';
+
+                await runProgressBar('Bypassing Firewall...', 100, 2000);
+                await runProgressBar('Injecting Payload...', 100, 1500);
+                await runProgressBar('Escalating Privileges...', 100, 2500);
+
+                const p = document.createElement('p');
+                p.textContent = 'ROOT ACCESS GRANTED';
+                p.className = 'text-xl sm:text-2xl text-glow';
+                progressLabel.replaceWith(p);
+
+                await new Promise(r => setTimeout(r, 2000));
+
+                hackSequenceContainer.style.opacity = '0';
+                await new Promise(r => setTimeout(r, 1000));
+                hackSequenceContainer.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                commandInput.focus();
+                typeMessage('Welcome, Operator. System is under your control. Type \'help\' for a list of commands.');
+                updateSystemStats();
+            }
+
+            async function runProgressBar(label, target, duration) {
+                progressLabel.textContent = label;
+                progressBar.style.width = '0%';
+                await new Promise(r => setTimeout(r, 100));
+                progressBar.style.transition = `width ${duration / 1000}s linear`;
+                progressBar.style.width = `${target}%`;
+                await new Promise(r => setTimeout(r, duration));
+            }
+
+            function updateSystemStats() {
+                setInterval(() => {
+                    document.getElementById('cpu-stat').textContent = (Math.random() * 15 + 80).toFixed(2);
+                    document.getElementById('mem-stat').textContent = (Math.random() * 10 + 75).toFixed(2);
+                    document.getElementById('net-stat').textContent = (Math.random() * 500 + 500).toFixed(2);
+                }, 1500);
+            }
+
+            function typeMessage(message, onComplete) {
+                if (isTyping) return;
+                isTyping = true;
+                const outputContainer = document.createElement('div');
+                outputContainer.className = 'mb-2';
+                let i = 0;
+                const interval = setInterval(() => {
+                    if (i < message.length) {
+                        outputContainer.innerHTML += message.charAt(i);
+                        i++;
+                        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                    } else {
+                        clearInterval(interval);
+                        isTyping = false;
+                        if (onComplete) onComplete();
+                    }
+                }, typeSpeed);
+                terminalOutput.appendChild(outputContainer);
+            }
+
+            function executeCommand(command) {
+                if (isTyping) return;
+                const outputContainer = document.createElement('div');
+                outputContainer.className = 'mb-2';
+                outputContainer.innerHTML = `<div class="text-red-500">&gt; ${command}</div>`;
+                terminalOutput.appendChild(outputContainer);
+                playConfirmSound();
+
+                const [baseCmd, ...args] = command.toLowerCase().split(' ');
+
+                switch (baseCmd) {
+                    case 'help':
+                        let helpText = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">';
+                        for (const [key, value] of Object.entries(commands)) {
+                            helpText += `<div><span class="text-glow">${key}</span> - ${value}</div>`;
+                        }
+                        helpText += '</div>';
+                        outputContainer.innerHTML += helpText;
+                        break;
+                    case 'whois':
+                        outputContainer.innerHTML += `
+                            <div class="flex flex-col items-center sm:items-start sm:flex-row gap-4 mt-2">
+                                <img src="profile.jpg" alt="Hacker ID" class="w-24 h-24 sm:w-32 sm:h-32 border-2 border-green-500/50 flex-shrink-0 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/150x150/010409/00ff41?text=NO+IMG';">
+                                <div>
+                                    <p><span class="text-red-500">IDENTITY:</span> Akash Kumar</p>
+                                    <p><span class="text-red-500">EDUCATION:</span> M.Tech (Integrated) in CS & Cybersecurity</p>
+                                    <p><span class="text-red-500">INSTITUTION:</span> National Forensic Sciences University, Delhi</p>
+                                    <p><span class="text-red-500">MOTIVATION:</span> My approach to cybersecurity is built on a simple principle: to build a fortress, you must first think like the invader. I'm driven by the intellectual challenge of deconstructing complex threats, from analyzing malware behavior to tracing the digital footprints of fraud. It's not just about building walls; it's about understanding the architecture of the attack to create more resilient, intelligent, and proactive defense systems.</p>
+                                </div>
+                            </div>`;
+                        break;
+                    case 'scan':
+                        if (args[0] === '--skills') {
+                            outputContainer.innerHTML += `
+                                <p class="mt-2">Scanning agent's skillset...</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 mt-2">
+                                    <div><span class="text-red-500">LANGUAGES:</span> C, C++, Python, Java, HTML/CSS, JavaScript</div>
+                                    <div><span class="text-red-500">TECHNOLOGIES:</span> React.js, Node.js, jQuery, ASP.NET, MySQL, Linux</div>
+                                    <div><span class="text-red-500">CYBERSEC TOOLS:</span> BurpSuite, Metasploit, Wireshark, SOAR, OSINT Tools, Digital Forensic Tools</div>
+                                    <div><span class="text-red-500">CONCEPTS:</span> Networking, Cryptography, AI/ML, Cloud Computing, Cyber Crime Investigation, Data Cleaning</div>
+                                </div>`;
+                        } else {
+                            outputContainer.innerHTML += 'Error: Missing or invalid flag for scan. Try `scan --skills`.';
+                        }
+                        break;
+                    case 'review':
+                        if (args[0] === '--logs') {
+                            outputContainer.innerHTML += `
+                                <p class="mt-2">Accessing operation logs... 5 entries found.</p>
+                                <div class="mt-2 space-y-4">
+                                    <div><p><span class="text-red-500">OPERATION:</span> Internship at I4C, Ministry of Home Affairs</p><p class="pl-4 text-sm">Analyzed cyber fraud incidents, performed malware analysis on Android APKs, and assisted the Cyber Fraud Mitigation Center.</p></div>
+                                    <div><p><span class="text-red-500">OPERATION:</span> AI and Cloud Internship at Edunet Foundation</p><p class="pl-4 text-sm">Focused on data cleaning, processing, and predictive analysis of TED Talk views using ML algorithms.</p></div>
+                                    <div><p><span class="text-red-500">PROJECT:</span> Network Intrusion Detection System (NIDS)</p><p class="pl-4 text-sm">Designed and implemented a NIDS, comparing classification algorithms like Decision Trees, SVM, and Random Forests.</p></div>
+                                    <div><p><span class="text-red-500">PROJECT:</span> Mirrored Website Detection Tool</p><p class="pl-4 text-sm">Developed a Python tool with a Tkinter GUI to detect phishing sites using URL analysis and content similarity checks.</p></div>
+                                    <div><p><span class="text-red-500">PROJECT:</span> Portfolio Website</p><p class="pl-4 text-sm">This very terminal. A responsive and user-friendly portfolio created with React.js to demonstrate web development expertise.</p></div>
+                                </div>`;
+                        } else {
+                            outputContainer.innerHTML += 'Error: Missing or invalid flag for review. Try `review --logs`.';
+                        }
+                        break;
+                    case 'achievements':
+                        outputContainer.innerHTML += `
+                            <p class="mt-2">Querying achievement database...</p>
+                            <div class="mt-2 space-y-4">
+                                <div><p><span class="text-red-500">CERTIFICATIONS:</span></p>
+                                    <ul class="list-disc list-inside pl-4 text-sm">
+                                        <li>Getting Started with Enterprise-grade AI - IBM</li>
+                                        <li>Journey to Cloud: Envisioning Your Solution - IBM</li>
+                                        <li>Cybersecurity Fundamentals - IBM</li>
+                                        <li>Develop GenAI Apps with Gemini and Streamlit - GOOGLE</li>
+                                        <li>Introduction to Generative AI - GOOGLE</li>
+                                        <li>Prompt Design in Vertex AI - GOOGLE</li>
+                                        <li>AWS-Cloud Semester-1</li>
+                                    </ul>
+                                </div>
+                                <div><p><span class="text-red-500">CTF PARTICIPATION:</span></p>
+                                    <ul class="list-disc list-inside pl-4 text-sm">
+                                        <li>Toyota Tsusho System CTF</li>
+                                        <li>Spectre CTF - OWASP</li>
+                                        <li>Pragyan 25 CTF - Unstop</li>
+                                    </ul>
+                                </div>
+                            </div>`;
+                        break;
+                    case 'extract':
+                        if (args[0] === '--intel') {
+                            outputContainer.innerHTML += `<p class="mt-2">Intel package [Akash Resume(new).pdf] located. Preparing for extraction...</p>
+                            <a href="Akash Resume(new).pdf" target="_blank" rel="noopener noreferrer" class="inline-block mt-2 bg-green-900/50 text-green-300 border border-green-500 px-4 py-2 hover:bg-green-500 hover:text-black">DOWNLOAD DOSSIER</a>`;
+                        } else {
+                            outputContainer.innerHTML += 'Error: Missing or invalid flag for extract. Try `extract --intel`.';
+                        }
+                        break;
+                    case 'contact':
+                        outputContainer.innerHTML += `<p class="mt-2">Opening secure communication channels...</p>
+                            <div class="mt-2 space-x-4">
+                                <a href="mailto:ak1646353@gmail.com" class="command-link">[EMAIL]</a>
+                                <a href="https://www.linkedin.com/in/akash-kumar-81ba98257" target="_blank" rel="noopener noreferrer" class="command-link">[LINKEDIN]</a>
+                                <a href="https://github.com/example" target="_blank" rel="noopener noreferrer" class="command-link">[GITHUB]</a>
+                            </div>`;
+                        break;
+                    case 'clear':
+                        terminalOutput.innerHTML = '';
+                        return;
+                    case 'exit':
+                        typeMessage('Shutting down session...', () => setTimeout(() => window.location.reload(), 1000));
+                        return;
+                    default:
+                        playErrorSound();
+                        outputContainer.innerHTML += `Error: Command not found: ${command}. Type 'help' for a list of commands.`;
+                }
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            }
+
+            commandInput.addEventListener('keydown', (e) => {
+                playKeySound();
+                if (e.key === 'Enter' && commandInput.value.trim() !== '') {
+                    const command = commandInput.value.trim();
+                    executeCommand(command);
+                    commandInput.value = '';
+                }
+            });
+
+            // Matrix Rain Effect
+            const ctx = matrixCanvas.getContext('2d');
+            const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+            const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const nums = '0123456789';
+            const alphabet = katakana + latin + nums;
+            const fontSize = 16;
+            let columns;
+            let rainDrops = [];
+
+            function setupMatrix() {
+                matrixCanvas.width = window.innerWidth;
+                matrixCanvas.height = window.innerHeight;
+                columns = Math.floor(matrixCanvas.width / fontSize);
+                rainDrops = [];
+                for (let x = 0; x < columns; x++) {
+                    rainDrops[x] = 1;
+                }
+            }
+
+            window.addEventListener('resize', setupMatrix);
+
+            const drawMatrix = () => {
+                ctx.fillStyle = 'rgba(1, 4, 9, 0.05)';
+                ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+                ctx.fillStyle = '#00ff41';
+                ctx.font = fontSize + 'px monospace';
+                for (let i = 0; i < rainDrops.length; i++) {
+                    const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                    ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                    if (rainDrops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+                        rainDrops[i] = 0;
+                    }
+                    rainDrops[i]++;
+                }
+            };
+
+            setupMatrix();
+            setInterval(drawMatrix, 33);
+
+            runHackSequence();
+        });
+    </script>
+</body>
+
+</html>
